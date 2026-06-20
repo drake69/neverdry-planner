@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeverDry – Planner</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1 id="app-title">NeverDry – Planner</h1>
+    <p class="tagline" id="app-tagline">How many drippers — and at what flow — when your garden has mixed plants?</p>
+    <div class="hero-actions">
+      <button id="btn-import" class="cta secondary">Import JSON</button>
+      <button id="btn-export" class="cta">Export JSON</button>
+      <input type="file" id="file-import" accept=".json" hidden>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- Line metadata -->
+    <section>
+      <div class="line-meta">
+        <div class="field-group">
+          <label id="lbl-line-name" for="line-name">Line name</label>
+          <input type="text" id="line-name" placeholder="e.g. North flower bed">
+        </div>
+        <div class="field-group" style="max-width:200px">
+          <label id="lbl-line-type" for="line-type">Irrigation type</label>
+          <select id="line-type">
+            <option value="drip">Drip</option>
+            <option value="sprinkler">Sprinkler</option>
+            <option value="micro-sprinkler">Micro-sprinkler</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Nodes grid -->
+    <section class="nodes-section">
+      <h2 id="nodes-title">Nodes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th id="th-num"   class="col-num">#</th>
+            <th id="th-plant" class="col-plant">Plant</th>
+            <th id="th-count" class="col-count">No. plants</th>
+            <th id="th-diam"  class="col-diam">∅ canopy m <small style="opacity:.75">(optional)</small></th>
+            <th class="col-del"></th>
+          </tr>
+        </thead>
+        <tbody id="nodes-body"></tbody>
+      </table>
+
+      <div class="nodes-footer">
+        <button id="btn-add-node" class="btn-add">+ Add node</button>
+        <span class="missing-plant-hint">
+          <span id="missing-plant-label">Plant not in the catalog?</span>
+          <a id="missing-plant-cta" href="#" target="_blank" rel="noopener">Request it →</a>
+        </span>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section>
+      <h2 id="results-title">Results</h2>
+      <div id="results">
+        <p class="hint">Select at least one plant to see the result.</p>
+      </div>
+
+      <!-- Advanced settings -->
+      <div class="cfg-section">
+        <button id="cfg-toggle">▶ Advanced settings</button>
+        <div id="cfg-body" hidden>
+          <div class="cfg-grid">
+            <div class="cfg-field">
+              <label id="lbl-cfg-eto" for="cfg-eto">Peak ETo (mm/day)</label>
+              <input type="number" id="cfg-eto" min="0.1" step="0.1" value="5.0">
+            </div>
+            <div class="cfg-field">
+              <label id="lbl-cfg-runtime" for="cfg-runtime">Design runtime at peak ETo (h/day)</label>
+              <input type="number" id="cfg-runtime" min="0.1" step="0.1" value="1.0">
+            </div>
+            <div class="cfg-field">
+              <label id="lbl-cfg-max-flow" for="cfg-max-flow">Max line flow (l/h)</label>
+              <input type="number" id="cfg-max-flow" min="1" step="1" placeholder="no limit">
+            </div>
+            <div class="cfg-field">
+              <label id="lbl-cfg-emitters" for="cfg-emitters">Available emitter sizes (l/h)</label>
+              <input type="text" id="cfg-emitters" value="1, 2, 4, 8">
+            </div>
+            <div class="cfg-field">
+              <label id="lbl-cfg-max-emitters" for="cfg-max-emitters">Max emitters per node</label>
+              <input type="number" id="cfg-max-emitters" min="1" step="1" value="8">
+            </div>
+            <div class="cfg-field">
+              <label id="lbl-cfg-max-err" for="cfg-max-err">Max acceptable error (%)</label>
+              <input type="number" id="cfg-max-err" min="1" max="100" step="1" value="10">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /container -->
+
+  <!-- Acknowledgments -->
+  <footer class="credits">
+    <div class="container">
+      <p>
+        Plant water-use data: <strong>WUCOLS IV</strong> — Water Use Classification of Landscape Species
+        (Costello, Matheny &amp; Clark; UC Cooperative Extension, 2014).
+        Dataset: <a href="https://github.com/ucdavis/WUCOLS-plant-search-database" target="_blank" rel="noopener">github.com/ucdavis/WUCOLS-plant-search-database</a>
+        — MIT License © 2022 UC Davis.
+        Part of the <a href="https://drake69.github.io/NeverDry/" target="_blank" rel="noopener">NeverDry</a> project.
+      </p>
+      <p style="margin-top:.6em">
+        <strong>Note on Kc / Kp:</strong> WUCOLS IV uses the term <em>plant factor</em> (Kp) in the formula
+        ETc&thinsp;=&thinsp;Kp&thinsp;×&thinsp;ETo, where ETo is the reference evapotranspiration (driven by
+        climate: solar radiation, temperature, humidity, wind) and Kp is a fixed species characteristic.
+        This differs from the FAO-56 crop coefficient Kc (Allen et al., 1998), which varies with crop
+        growth stage. For landscape species, Kp is treated as a constant property of the plant —
+        analogous to a single-stage Kc. This tool labels it <strong>Kc</strong> for familiarity,
+        with the understanding that the value comes from WUCOLS IV and is fixed per species.
+      </p>
+    </div>
+  </footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

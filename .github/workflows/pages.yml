@@ -1,0 +1,59 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate catalog.json
+        run: python3 -c "
+import json
+with open('data/catalog.json') as f:
+    catalog = json.load(f)
+entries = catalog['entries']
+assert isinstance(entries, dict), 'entries must be a dict'
+assert len(entries) > 3000, f'expected >3000 entries, got {len(entries)}'
+missing_wc = [k for k, v in entries.items() if 'water_coefficient' not in v]
+assert not missing_wc, f'{len(missing_wc)} entries missing water_coefficient'
+print(f'catalog.json OK — {len(entries)} entries, all have water_coefficient')
+"
+
+  deploy:
+    name: Deploy
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
