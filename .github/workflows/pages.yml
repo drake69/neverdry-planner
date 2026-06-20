@@ -24,17 +24,17 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate catalog.json
-        run: python3 -c "
-import json
-with open('data/catalog.json') as f:
-    catalog = json.load(f)
-entries = catalog['entries']
-assert isinstance(entries, dict), 'entries must be a dict'
-assert len(entries) > 3000, f'expected >3000 entries, got {len(entries)}'
-missing_wc = [k for k, v in entries.items() if 'water_coefficient' not in v]
-assert not missing_wc, f'{len(missing_wc)} entries missing water_coefficient'
-print(f'catalog.json OK — {len(entries)} entries, all have water_coefficient')
-"
+        run: |
+          python3 -c "
+          import json
+          d = json.load(open('data/catalog.json'))
+          e = d['entries']
+          assert isinstance(e, dict), 'entries must be a dict'
+          assert len(e) > 3000, f'expected >3000 entries, got {len(e)}'
+          bad = [k for k, v in e.items() if 'water_coefficient' not in v]
+          assert not bad, f'{len(bad)} entries missing water_coefficient'
+          print(f'catalog.json OK: {len(e)} entries')
+          "
 
   deploy:
     name: Deploy
