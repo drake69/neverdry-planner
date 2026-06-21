@@ -67,6 +67,10 @@ function bindLangBar() {
 
 // Apply i18n strings to static DOM elements (those that exist before any data loads).
 function applyI18nStatic() {
+  document.getElementById('how-step1').textContent = t('step1');
+  document.getElementById('how-step2').textContent = t('step2');
+  document.getElementById('how-step3').textContent = t('step3');
+  document.getElementById('how-step4').textContent = t('step4');
   document.title                                            = t('appTitle');
   document.getElementById('app-title').textContent         = t('appTitle');
   document.getElementById('app-tagline').textContent       = t('appTagline');

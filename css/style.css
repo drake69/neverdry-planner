@@ -120,6 +120,57 @@ body {
 .cta.secondary:hover { background: rgba(255,255,255,.25); }
 
 /* ---------------------------------------------------------------------------
+   How-to steps strip
+--------------------------------------------------------------------------- */
+.how-to-steps {
+  display:         flex;
+  gap:             0;
+  list-style:      none;
+  margin:          24px 0 0;
+  border-radius:   var(--radius);
+  overflow:        hidden;
+  box-shadow:      var(--shadow);
+}
+
+.how-to-steps li {
+  flex:            1;
+  display:         flex;
+  align-items:     center;
+  gap:             10px;
+  background:      var(--card-bg);
+  padding:         12px 14px;
+  font-size:       .85em;
+  line-height:     1.3;
+  border-right:    1px solid var(--border);
+  color:           var(--text);
+}
+
+.how-to-steps li:last-child { border-right: none; }
+
+.step-n {
+  flex-shrink:     0;
+  width:           24px;
+  height:          24px;
+  border-radius:   50%;
+  background:      var(--accent);
+  color:           white;
+  font-size:       .75em;
+  font-weight:     700;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .how-to-steps {
+    flex-direction: column;
+    margin-bottom:  0;
+  }
+  .how-to-steps li { border-right: none; border-bottom: 1px solid var(--border); }
+  .how-to-steps li:last-child { border-bottom: none; }
+}
+
+/* ---------------------------------------------------------------------------
    Layout
 --------------------------------------------------------------------------- */
 .container {

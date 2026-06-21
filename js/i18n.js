@@ -4,6 +4,10 @@
 // ---------------------------------------------------------------------------
 
 const en = {
+  step1:  'Name your line',
+  step2:  'List the plants on the valve',
+  step3:  'Get the data to configure NeverDry',
+  step4:  'Save your configuration',
   appTitle:        'NeverDry – Planner',
   appTagline:      'How many drippers — and at what flow — when your garden has mixed plants?',
   importJson:      'Import JSON',
@@ -66,6 +70,10 @@ const en = {
 };
 
 const it = {
+  step1:  'Dai un nome alla linea',
+  step2:  'Elenca le piante sulla valvola',
+  step3:  'Leggi i dati per configurare NeverDry',
+  step4:  'Salvati la configurazione',
   appTitle:        'NeverDry – Planner',
   appTagline:      'Quanti gocciolatori — e a che portata — quando il giardino ha piante miste?',
   importJson:      'Importa JSON',
@@ -128,6 +136,10 @@ const it = {
 };
 
 const de = {
+  step1:  'Geben Sie der Leitung einen Namen',
+  step2:  'Pflanzen an der Leitung eintragen',
+  step3:  'Daten für NeverDry ablesen',
+  step4:  'Konfiguration speichern',
   appTitle:        'NeverDry – Planner',
   appTagline:      'Wie viele Tropfer — und welchen Durchfluss — wenn der Garten verschiedene Pflanzen hat?',
   importJson:      'JSON importieren',
@@ -192,6 +204,10 @@ const de = {
 const at = { ...de };
 
 const fr = {
+  step1:  'Nommez votre ligne',
+  step2:  'Listez les plantes sur la vanne',
+  step3:  'Lisez les données pour configurer NeverDry',
+  step4:  'Sauvegardez la configuration',
   appTitle:        'NeverDry – Planner',
   appTagline:      'Combien de goutteurs — et quel débit — quand votre jardin a des plantes variées ?',
   importJson:      'Importer JSON',
@@ -254,6 +270,10 @@ const fr = {
 };
 
 const es = {
+  step1:  'Ponle nombre a tu línea',
+  step2:  'Lista las plantas de la válvula',
+  step3:  'Lee los datos para configurar NeverDry',
+  step4:  'Guarda la configuración',
   appTitle:        'NeverDry – Planner',
   appTagline:      '¿Cuántos goteros — y a qué caudal — cuando el jardín tiene plantas mixtas?',
   importJson:      'Importar JSON',
@@ -316,6 +336,10 @@ const es = {
 };
 
 const pt = {
+  step1:  'Dê um nome à linha',
+  step2:  'Liste as plantas na válvula',
+  step3:  'Leia os dados para configurar o NeverDry',
+  step4:  'Guarde a configuração',
   appTitle:        'NeverDry – Planner',
   appTagline:      'Quantos gotejadores — e a que vazão — quando o jardim tem plantas mistas?',
   importJson:      'Importar JSON',
@@ -378,6 +402,10 @@ const pt = {
 };
 
 const hu = {
+  step1:  'Adjon nevet a vonalnak',
+  step2:  'Sorolja fel a szelepen lévő növényeket',
+  step3:  'Olvassa le a NeverDry konfigurációhoz szükséges adatokat',
+  step4:  'Mentse el a konfigurációt',
   appTitle:        'NeverDry – Planner',
   appTagline:      'Hány csepegtető — és mekkora áramlással — ha a kert vegyes növényzetű?',
   importJson:      'JSON importálása',
@@ -440,6 +468,10 @@ const hu = {
 };
 
 const hr = {
+  step1:  'Imenujte liniju',
+  step2:  'Navedite biljke na ventilu',
+  step3:  'Očitajte podatke za konfiguraciju NeverDry',
+  step4:  'Spremite konfiguraciju',
   appTitle:        'NeverDry – Planner',
   appTagline:      'Koliko kapljača — i kojim protokom — kada vrt ima mješovite biljke?',
   importJson:      'Uvezi JSON',
