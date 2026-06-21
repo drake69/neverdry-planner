@@ -4,13 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NeverDry – Planner</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="icon" type="image/png" href="icon.png">
   <link rel="stylesheet" href="css/style.css">
+  <!-- Vemetric analytics -->
+  <script>
+    window.vmtrcq = window.vmtrcq || [];
+    window.vmtrc = window.vmtrc || function (){window.vmtrcq.push(Array.prototype.slice.call(arguments))};
+  </script>
+  <script defer src="https://cdn.vemetric.com/main.js" id="vmtrc-scr" data-token="TmCTG71IzwQtA2Rv"></script>
 </head>
 <body>
 
   <!-- Hero -->
   <div class="hero">
-    <h1 id="app-title">NeverDry – Planner</h1>
+    <div class="hero-brand">
+      <img src="icon.svg" alt="NeverDry" class="hero-logo">
+      <h1 id="app-title">NeverDry – Planner</h1>
+    </div>
     <p class="tagline" id="app-tagline">How many drippers — and at what flow — when your garden has mixed plants?</p>
     <div class="hero-actions">
       <button id="btn-import" class="cta secondary">Import JSON</button>

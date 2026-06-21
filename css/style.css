@@ -47,10 +47,24 @@ body {
   text-align:  center;
 }
 
+.hero-brand {
+  display:     flex;
+  align-items: center;
+  justify-content: center;
+  gap:         .6em;
+  margin-bottom: .2em;
+}
+
+.hero-logo {
+  width:  48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
 .hero h1 {
   font-size:     2.2em;
   font-weight:   700;
-  margin-bottom: .2em;
+  margin-bottom: 0;
   letter-spacing: -.01em;
 }
 
