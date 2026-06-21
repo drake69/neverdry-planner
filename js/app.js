@@ -3,9 +3,60 @@ import { planIrrigationLine, DEFAULT_CONFIG } from './engine.js';
 import { STRINGS, HTML_LANG, detectLang }     from './i18n.js';
 
 let currentLang = 'en';
+let unitSystem  = 'metric';   // 'metric' | 'imperial'
+
 function t(key, data) {
   const val = STRINGS[currentLang]?.[key] ?? STRINGS.en[key] ?? key;
   return typeof val === 'function' ? val(data) : val;
+}
+
+// ---------------------------------------------------------------------------
+// Unit system
+// ---------------------------------------------------------------------------
+function detectUnit() {
+  const s = localStorage.getItem('ndp-unit');
+  if (s === 'metric' || s === 'imperial') return s;
+  return /^en-US/i.test(navigator.language || '') ? 'imperial' : 'metric';
+}
+
+function flowUnit() { return unitSystem === 'metric' ? 'l/h'    : 'GPH'; }
+function areaUnit() { return unitSystem === 'metric' ? 'm²'     : 'ft²'; }
+function diamUnit() { return unitSystem === 'metric' ? 'm'      : 'ft'; }
+function etoUnit()  { return unitSystem === 'metric' ? 'mm/day' : 'in/day'; }
+
+// Convert metric value → display value in the current unit system, rounded.
+function fmtU(type, v) {
+  if (v === null || v === undefined) return v;
+  if (unitSystem === 'metric') return v;
+  const factors = { flow: 0.26417, area: 10.7639, diam: 3.28084, eto: 1 / 25.4 };
+  const converted = v * (factors[type] ?? 1);
+  if (type === 'flow') return Math.round(converted * 10)   / 10;
+  if (type === 'area') return Math.round(converted * 100)  / 100;
+  return                      Math.round(converted * 1000) / 1000;
+}
+
+// Convert a user-entered display value → internal metric value.
+function toMetricVal(type, v) {
+  if (unitSystem === 'metric') return v;
+  const factors = { flow: 3.78541, diam: 1 / 3.28084, eto: 25.4 };
+  return v * (factors[type] ?? 1);
+}
+
+function setUnit(sys) {
+  unitSystem = sys;
+  localStorage.setItem('ndp-unit', sys);
+  document.querySelectorAll('.unit-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.unit === sys));
+  applyI18nStatic();
+  syncAdvancedConfig();
+  document.querySelectorAll('#nodes-body tr[data-node-id]').forEach(tr => {
+    const node = state.lineInput.nodes.find(n => n.id === tr.dataset.nodeId);
+    if (node?.canopyDiameterM != null) {
+      const di = tr.querySelectorAll('input[type="number"]')[1];
+      if (di) di.value = fmtU('diam', node.canopyDiameterM);
+    }
+  });
+  renderResults();
 }
 
 function setLang(lang) {
@@ -44,9 +95,11 @@ const state = {
 // ---------------------------------------------------------------------------
 async function init() {
   currentLang = detectLang();
+  unitSystem  = detectUnit();
   document.documentElement.lang = HTML_LANG[currentLang] || currentLang;
   applyI18nStatic();
   bindLangBar();
+  bindUnitToggle();
   try {
     state.catalog = await loadCatalog('./data/catalog.json');
   } catch (e) {
@@ -62,6 +115,13 @@ function bindLangBar() {
   document.querySelectorAll('.lang-bar a[data-lang]').forEach(a => {
     a.classList.toggle('active', a.dataset.lang === currentLang);
     a.addEventListener('click', e => { e.preventDefault(); setLang(a.dataset.lang); });
+  });
+}
+
+function bindUnitToggle() {
+  document.querySelectorAll('.unit-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.unit === unitSystem);
+    b.addEventListener('click', () => setUnit(b.dataset.unit));
   });
 }
 
@@ -86,7 +146,7 @@ function applyI18nStatic() {
   document.getElementById('th-num').textContent       = t('colNum');
   document.getElementById('th-plant').textContent     = t('colPlant');
   document.getElementById('th-count').textContent     = t('colCount');
-  document.getElementById('th-diam').innerHTML        = `${t('colDiam')} <small>${t('colDiamHint')}</small>`;
+  document.getElementById('th-diam').innerHTML        = `${t('colDiam')} <span class="unit-suffix">${diamUnit()}</span> <small>${t('colDiamHint')}</small>`;
   document.getElementById('btn-add-node').textContent = t('addNode');
   document.getElementById('missing-plant-label').textContent = t('missingPlant');
   document.getElementById('missing-plant-cta').textContent   = t('missingPlantCta');
@@ -94,10 +154,10 @@ function applyI18nStatic() {
     `mailto:${CATALOG_CONTACT_EMAIL}?subject=${encodeURIComponent('NeverDry Planner — plant request')}`;
   document.getElementById('results-title').textContent = t('resultsTitle');
   document.getElementById('cfg-toggle').textContent    = t('cfgTitle');
-  document.getElementById('lbl-cfg-eto').textContent        = t('cfgEto');
+  document.getElementById('lbl-cfg-eto').textContent        = `${t('cfgEto')} (${etoUnit()})`;
   document.getElementById('lbl-cfg-runtime').textContent    = t('cfgRuntime');
-  document.getElementById('lbl-cfg-max-flow').textContent   = t('cfgMaxFlow');
-  document.getElementById('lbl-cfg-emitters').textContent   = t('cfgEmitters');
+  document.getElementById('lbl-cfg-max-flow').textContent   = `${t('cfgMaxFlow')} (${flowUnit()})`;
+  document.getElementById('lbl-cfg-emitters').textContent   = `${t('cfgEmitters')} (${flowUnit()})`;
   document.getElementById('lbl-cfg-max-emitters').textContent = t('cfgMaxEmitters');
   document.getElementById('lbl-cfg-max-err').textContent    = t('cfgMaxErr');
   const haEl1 = document.getElementById('ha-cta-eyebrow');
@@ -160,12 +220,12 @@ function appendNodeRow(node) {
   const diamCell = document.createElement('td');
   diamCell.className = 'col-diam';
   const diamInput = document.createElement('input');
-  diamInput.type = 'number'; diamInput.min = 0.1; diamInput.step = 0.1;
+  diamInput.type = 'number'; diamInput.min = 0.01; diamInput.step = 0.01;
   diamInput.placeholder = 'auto';
-  if (node.canopyDiameterM != null) diamInput.value = node.canopyDiameterM;
+  if (node.canopyDiameterM != null) diamInput.value = fmtU('diam', node.canopyDiameterM);
   diamInput.addEventListener('input', e => {
     const v = parseFloat(e.target.value);
-    updateNodeField(node.id, 'canopyDiameterM', isNaN(v) ? null : v);
+    updateNodeField(node.id, 'canopyDiameterM', isNaN(v) ? null : toMetricVal('diam', v));
   });
   diamCell.appendChild(diamInput);
 
@@ -361,7 +421,7 @@ function renderResults() {
   const p = state.linePlan;
 
   const flowHtml = p.lineFlowLph !== null
-    ? `<strong>${p.lineFlowLph} l/h</strong>`
+    ? `<strong>${fmtU('flow', p.lineFlowLph)} ${flowUnit()}</strong>`
     : `<span class="muted">${t('noFlowSprinkler')}</span>`;
 
   const classKey  = { bilanciata: 'classBalanced', 'da verificare': 'classCheck', 'non bilanciata': 'classUnbalanced' };
@@ -378,16 +438,16 @@ function renderResults() {
     const compatIcon = n.compatibility === 'coerente' ? t('compatOk')
                      : n.compatibility === 'da verificare' ? t('compatWarn') : t('compatCrit');
     const emitLabel  = p.irrigationType === 'drip'
-      ? n.breakdown.map(b => `${b.count}×${b.lph}`).join(', ')
+      ? n.breakdown.map(b => `${b.count}×${fmtU('flow', b.lph)}`).join(', ')
       : '—';
-    const instLabel  = p.irrigationType === 'drip' ? n.installedLph : '—';
+    const instLabel  = p.irrigationType === 'drip' ? fmtU('flow', n.installedLph) : '—';
 
     return `
       <tr>
         <td class="col-num">${i + 1}</td>
         <td>${esc(n.plantName)}</td>
         <td class="num muted">${n.kc}</td>
-        <td class="num">${n.targetLph}</td>
+        <td class="num">${fmtU('flow', n.targetLph)}</td>
         <td class="num">${instLabel}</td>
         <td class="num">${emitLabel}</td>
         <td class="num ${errCss}">${errSign}${errPct}%</td>
@@ -405,7 +465,7 @@ function renderResults() {
     <tfoot>
       <tr class="tfoot-total">
         <td colspan="4" class="tfoot-label">${t('totalInstalled')}</td>
-        <td class="num ${totalCss} tfoot-val">${totalIcon} ${totalInst} l/h${maxFlow != null ? ` / ${maxFlow}` : ''}</td>
+        <td class="num ${totalCss} tfoot-val">${totalIcon} ${fmtU('flow', totalInst)} ${flowUnit()}${maxFlow != null ? ` / ${fmtU('flow', maxFlow)}` : ''}</td>
         <td colspan="3"></td>
       </tr>
     </tfoot>` : '';
@@ -429,7 +489,7 @@ function renderResults() {
       </div>
       <div class="card">
         <span class="label">${t('cardArea')}</span>
-        <span class="value"><strong>${p.areaEquivalentM2} m²</strong></span>
+        <span class="value"><strong>${fmtU('area', p.areaEquivalentM2)} ${areaUnit()}</strong></span>
       </div>
       <div class="card">
         <span class="label">${t('cardKc')}</span>
@@ -455,8 +515,8 @@ function renderResults() {
           <th class="col-num">${t('colNum')}</th>
           <th>${t('colPlant')}</th>
           <th class="num">${t('colKc')}</th>
-          <th class="num">${t('colTarget')}</th>
-          <th class="num">${t('colInst')}</th>
+          <th class="num">${t('colTarget')} <span class="unit-suffix">${flowUnit()}</span></th>
+          <th class="num">${t('colInst')} <span class="unit-suffix">${flowUnit()}</span></th>
           <th class="num">${t('colEmitters')}</th>
           <th class="num">${t('colError')}</th>
           <th class="num">${t('colStatus')}</th>
@@ -572,10 +632,12 @@ function applyImport(li) {
 // Configurazione avanzata
 // ---------------------------------------------------------------------------
 function syncAdvancedConfig() {
-  document.getElementById('cfg-eto').value          = state.lineInput.config.etoMmDay;
+  document.getElementById('cfg-eto').value          = fmtU('eto', state.lineInput.config.etoMmDay);
   document.getElementById('cfg-runtime').value      = state.lineInput.config.runtimeHDay;
-  document.getElementById('cfg-max-flow').value     = state.lineInput.config.maxLineFlowLph ?? '';
-  document.getElementById('cfg-emitters').value     = state.lineInput.config.emitterLphOptions.join(', ');
+  document.getElementById('cfg-max-flow').value     = state.lineInput.config.maxLineFlowLph != null
+    ? fmtU('flow', state.lineInput.config.maxLineFlowLph) : '';
+  document.getElementById('cfg-emitters').value     =
+    state.lineInput.config.emitterLphOptions.map(v => fmtU('flow', v)).join(', ');
   document.getElementById('cfg-max-emitters').value = state.lineInput.config.maxEmittersPerNode;
   document.getElementById('cfg-max-err').value      = Math.round(state.lineInput.config.acceptableErrorRatio * 100);
 }
@@ -615,7 +677,7 @@ function bindStaticEvents() {
 
   document.getElementById('cfg-eto').addEventListener('input', e => {
     const v = parseFloat(e.target.value);
-    if (!isNaN(v) && v > 0) { state.lineInput.config.etoMmDay = v; recalculate(); }
+    if (!isNaN(v) && v > 0) { state.lineInput.config.etoMmDay = toMetricVal('eto', v); recalculate(); }
   });
 
   document.getElementById('cfg-runtime').addEventListener('input', e => {
@@ -625,7 +687,7 @@ function bindStaticEvents() {
 
   document.getElementById('cfg-max-flow').addEventListener('input', e => {
     const v = parseFloat(e.target.value);
-    state.lineInput.config.maxLineFlowLph = (!isNaN(v) && v > 0) ? v : null;
+    state.lineInput.config.maxLineFlowLph = (!isNaN(v) && v > 0) ? toMetricVal('flow', v) : null;
     recalculate();
   });
 
@@ -640,7 +702,8 @@ function bindStaticEvents() {
   document.getElementById('cfg-emitters').addEventListener('change', e => {
     const vals = e.target.value.split(',')
       .map(s => parseFloat(s.trim()))
-      .filter(v => !isNaN(v) && v > 0);
+      .filter(v => !isNaN(v) && v > 0)
+      .map(v => toMetricVal('flow', v));
     if (vals.length > 0) { state.lineInput.config.emitterLphOptions = vals; recalculate(); }
   });
 

@@ -94,7 +94,34 @@ body {
   margin-bottom: 1.5em;
 }
 
-.hero-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.hero-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.unit-toggle {
+  display:       flex;
+  border-radius: var(--radius-sm);
+  overflow:      hidden;
+  border:        1.5px solid rgba(255,255,255,.4);
+  align-self:    center;
+}
+
+.unit-btn {
+  background:  transparent;
+  border:      none;
+  color:       rgba(255,255,255,.75);
+  padding:     6px 14px;
+  font-size:   .88em;
+  font-weight: 600;
+  cursor:      pointer;
+  font-family: var(--font);
+  transition:  background .15s, color .15s;
+  line-height: 1;
+}
+
+.unit-toggle .unit-btn + .unit-btn { border-left: 1px solid rgba(255,255,255,.3); }
+.unit-btn:hover  { background: rgba(255,255,255,.12); color: white; }
+.unit-btn.active { background: rgba(255,255,255,.22); color: white; }
+
+.unit-suffix { font-weight: 400; opacity: .7; font-size: .85em; }
 
 .cta {
   display:       inline-block;
