@@ -1,74 +1,23 @@
 import { loadCatalog }                        from './catalog.js';
 import { planIrrigationLine, DEFAULT_CONFIG } from './engine.js';
-
-// ---------------------------------------------------------------------------
-// i18n
-// To add a language: add a new key to STRINGS and call setLang('xx').
-// ---------------------------------------------------------------------------
-const STRINGS = {
-  en: {
-    appTitle:        'NeverDry – Planner',
-    appTagline:      'How many drippers — and at what flow — when your garden has mixed plants?',
-    importJson:      'Import JSON',
-    exportJson:      'Export JSON',
-    lineName:        'Line name',
-    lineNamePh:      'e.g. North flower bed',
-    irrigationType:  'Irrigation type',
-    typeDrip:        'Drip',
-    typeSprinkler:   'Sprinkler',
-    typeMicro:       'Micro-sprinkler',
-    nodesTitle:      'Nodes',
-    colNum:          '#',
-    colPlant:        'Plant',
-    colCount:        'No. plants',
-    colDiam:         '∅ canopy m',
-    colDiamHint:     '(optional)',
-    plantPh:         '— select —',
-    addNode:         '+ Add node',
-    missingPlant:    'Plant not in the catalog?',
-    missingPlantCta: 'Request it →',
-    resultsTitle:    'Results',
-    cardFlow:        'Total flow',
-    cardArea:        'Equiv. area',
-    cardKc:          'Line Kc',
-    cardFamily:      'Virtual botanical family',
-    cardWater:       'Water demand',
-    cardStatus:      'Line status',
-    colTarget:       'Target l/h',
-    colInst:         'Inst. l/h',
-    colKc:           'Kc',
-    colEmitters:     'Emitters',
-    colError:        'Error',
-    colStatus:       'Status',
-    classBalanced:   'balanced',
-    classCheck:      'check needed',
-    classUnbalanced: 'unbalanced',
-    compatOk:        '✓',
-    compatWarn:      '⚠',
-    compatCrit:      '✗',
-    hintNoPlant:     'Select at least one plant to see the result.',
-    noFlowSprinkler: '— depends on nozzle / pressure',
-    cfgTitle:        '▶ Advanced settings',
-    cfgTitleOpen:    '▼ Advanced settings',
-    cfgEto:          'Peak ETo (mm/day)',
-    cfgRuntime:      'Design runtime at peak ETo (h/day)',
-    cfgMaxFlow:      'Max line flow (l/h)',
-    cfgEmitters:     'Available emitter sizes (l/h)',
-    cfgMaxEmitters:  'Max emitters per node',
-    cfgMaxErr:       'Max acceptable error (%)',
-    exportNone:      'No result to export.',
-    noteMultifamily: 'Multi-family line: the virtual botanical family is an operational compromise.',
-    noteCritical:    d => `Critical nodes to separate or re-balance: ${d}.`,
-    noteUnknown:     d => `Plants not in catalog — default profile used: ${d}.`,
-    fatalCatalog:    msg => `Cannot load botanical catalog: ${msg}`,
-  },
-  // it: { ... }  ← add Italian here when needed
-};
+import { STRINGS, HTML_LANG, detectLang }     from './i18n.js';
 
 let currentLang = 'en';
 function t(key, data) {
   const val = STRINGS[currentLang]?.[key] ?? STRINGS.en[key] ?? key;
   return typeof val === 'function' ? val(data) : val;
+}
+
+function setLang(lang) {
+  if (!STRINGS[lang]) return;
+  currentLang = lang;
+  localStorage.setItem('ndp-lang', lang);
+  document.documentElement.lang = HTML_LANG[lang] || lang;
+  document.querySelectorAll('.lang-bar a[data-lang]').forEach(a => {
+    a.classList.toggle('active', a.dataset.lang === lang);
+  });
+  applyI18nStatic();
+  renderResults();
 }
 
 // Contact for catalog additions — change this to the maintainer's actual address.
@@ -94,7 +43,10 @@ const state = {
 // Bootstrap
 // ---------------------------------------------------------------------------
 async function init() {
+  currentLang = detectLang();
+  document.documentElement.lang = HTML_LANG[currentLang] || currentLang;
   applyI18nStatic();
+  bindLangBar();
   try {
     state.catalog = await loadCatalog('./data/catalog.json');
   } catch (e) {
@@ -104,6 +56,13 @@ async function init() {
   addNode();
   bindStaticEvents();
   renderResults();
+}
+
+function bindLangBar() {
+  document.querySelectorAll('.lang-bar a[data-lang]').forEach(a => {
+    a.classList.toggle('active', a.dataset.lang === currentLang);
+    a.addEventListener('click', e => { e.preventDefault(); setLang(a.dataset.lang); });
+  });
 }
 
 // Apply i18n strings to static DOM elements (those that exist before any data loads).
@@ -137,6 +96,12 @@ function applyI18nStatic() {
   document.getElementById('lbl-cfg-emitters').textContent   = t('cfgEmitters');
   document.getElementById('lbl-cfg-max-emitters').textContent = t('cfgMaxEmitters');
   document.getElementById('lbl-cfg-max-err').textContent    = t('cfgMaxErr');
+  const haEl1 = document.getElementById('ha-cta-eyebrow');
+  const haEl2 = document.getElementById('ha-cta-body');
+  const haEl3 = document.getElementById('ha-cta-learn-more');
+  if (haEl1) haEl1.textContent = t('haCta1');
+  if (haEl2) haEl2.textContent = t('haCta2');
+  if (haEl3) haEl3.textContent = t('haCtaLearnMore');
 }
 
 // ---------------------------------------------------------------------------
@@ -203,7 +168,7 @@ function appendNodeRow(node) {
   const delCell = document.createElement('td');
   delCell.className = 'col-del';
   const delBtn = document.createElement('button');
-  delBtn.className = 'btn-del'; delBtn.title = 'Remove node'; delBtn.textContent = '×';
+  delBtn.className = 'btn-del'; delBtn.title = t('removeNode'); delBtn.textContent = '×';
   delBtn.addEventListener('click', () => removeNode(node.id));
   delCell.appendChild(delBtn);
 
@@ -395,10 +360,10 @@ function renderResults() {
     ? `<strong>${p.lineFlowLph} l/h</strong>`
     : `<span class="muted">${t('noFlowSprinkler')}</span>`;
 
-  const classMap  = { bilanciata: 'balanced', 'da verificare': 'check needed', 'non bilanciata': 'unbalanced' };
+  const classKey  = { bilanciata: 'classBalanced', 'da verificare': 'classCheck', 'non bilanciata': 'classUnbalanced' };
   const classCss  = { bilanciata: 'ok', 'da verificare': 'warn', 'non bilanciata': 'crit' };
   const classIcon = { bilanciata: '✓', 'da verificare': '⚠', 'non bilanciata': '✗' };
-  const classLabel = classMap[p.classification] || p.classification;
+  const classLabel = t(classKey[p.classification] || 'classBalanced');
   const classCssVal = classCss[p.classification] || '';
   const classIconVal = classIcon[p.classification] || '';
 
@@ -435,7 +400,7 @@ function renderResults() {
   const totalFooter = p.irrigationType === 'drip' ? `
     <tfoot>
       <tr class="tfoot-total">
-        <td colspan="4" class="tfoot-label">Total installed</td>
+        <td colspan="4" class="tfoot-label">${t('totalInstalled')}</td>
         <td class="num ${totalCss} tfoot-val">${totalIcon} ${totalInst} l/h${maxFlow != null ? ` / ${maxFlow}` : ''}</td>
         <td colspan="3"></td>
       </tr>

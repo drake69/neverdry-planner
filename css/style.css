@@ -43,9 +43,29 @@ body {
 .hero {
   background:  linear-gradient(135deg, var(--accent), var(--accent-2));
   color:       white;
-  padding:     48px 20px 40px;
+  padding:     12px 20px 40px;
   text-align:  center;
 }
+
+.lang-bar {
+  text-align:    right;
+  margin-bottom: 28px;
+}
+
+.lang-bar a {
+  color:           rgba(255,255,255,.75);
+  text-decoration: none;
+  font-size:       .78em;
+  font-weight:     500;
+  letter-spacing:  .04em;
+  margin-left:     6px;
+  padding:         2px 7px;
+  border-radius:   4px;
+  transition:      background .15s;
+}
+
+.lang-bar a:hover  { background: rgba(255,255,255,.15); color: white; }
+.lang-bar a.active { background: rgba(255,255,255,.22); color: white; font-weight: 700; }
 
 .hero-brand {
   display:     flex;
